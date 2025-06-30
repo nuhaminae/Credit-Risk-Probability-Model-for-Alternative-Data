@@ -9,6 +9,11 @@ class EDA:
     def __init__(self, df_path, plot_path = None, df_dir = None):
         """
         Initiate EDA class from DataFrame path.
+
+        Args:
+            df_path (str): The path to the DataFrame file (e.g., CSV).
+            plot_path (str, optional): The directory to save plots. Defaults to None.
+            df_dir (str, optional): The directory to save processed DataFrames. Defaults to None.
         """
 
         self.df_path = df_path
@@ -85,6 +90,8 @@ class EDA:
     def missing_values (self):
         """
         Identify missing values and determine appropriate imputation strategies.
+        Drops rows with less than or equal to 5% missing values and interpolates columns
+        with more than 5% missing values using linear interpolation.
         """
         if hasattr(self, 'df_raw') and self.df_raw is not None:
             # Calculate % of missing values per column 
@@ -122,10 +129,10 @@ class EDA:
     def summary_statistics(self):
         """
         Understand the central tendency, dispersion, and shape of the dataset’s distribution.
-        Exclude the 'CountryCode' column from numerical summaries.
+        Exclude the 'CountryCode' and 'PricingStrategy' columns from numerical summaries.
         """
         if hasattr(self, 'df') and self.df is not None and self.num_cols:
-                print("Summary statistics for numerical features (excluding 'CountryCode' and PricingStrategy):")
+                print("Summary statistics for numerical features (excluding 'CountryCode' and 'PricingStrategy'):")
                 display(self.df[self.num_cols].describe())
         else:
             print("No numerical features available for summary.")
@@ -155,7 +162,13 @@ class EDA:
     
     def remove_outliers_iqr_zscore(self, column):
         """
-        Function to adress outliers
+        Removes outliers from a specified column using a combination of the IQR and Z-score methods.
+
+        Args:
+            column (str): The name of the column to remove outliers from.
+
+        Returns:
+            pandas.DataFrame: A new DataFrame with outliers removed from the specified column.  
         """
         #IQR method
         Q1 = self.df[column].quantile(0.25)
@@ -179,8 +192,8 @@ class EDA:
     
     def visualise_distribution (self):
         """
-        Visualise the distribution of numerical features
-            - identify patterns, skewness, and potential outliers.
+        Visualise the distribution of numerical features using histograms with KDE.
+        Saves the plots to the specified plot directory.
         """
         if hasattr(self, 'df') and self.df is not None and self.num_cols:
             print ("Visualising distribution of numerical features ...\n")
@@ -204,8 +217,9 @@ class EDA:
     
     def visualise_value_count (self):
         """
-        Visualise the frquency of categorical features  
-            - Insights into the frequency and variability of categories
+        Visualise the frequency distribution of categorical features using countplots.
+        Excludes columns with only one unique value.
+        Saves the plots to the specified plot directory.
         """        
         if hasattr(self, 'df') and self.df is not None:
             # Filter columns with just one unique value (eg., "CountryCode", "CurrencyCode")
@@ -238,8 +252,8 @@ class EDA:
     
     def correlation_analysis(self):
         """
-        To understand the relationship between numerical features.
-        Display a heatmap showing correlation between numerical features.
+        Visualise the correlation matrix of numerical features using a heatmap.
+        Saves the plot to the specified plot directory.
         """
         if hasattr(self, 'df') and self.df is not None and self.num_cols:
             print ("Visualising correlations ...\n")
@@ -262,7 +276,9 @@ class EDA:
 
     def detect_outliers(self):
         """
-        Visualise outliers in numerical features using boxplots.
+        Visualise outliers in numerical features using boxplots before and after outlier removal.
+        Removes outliers using the `remove_outliers_iqr_zscore` method.
+        Saves the plots to the specified plot directory.
         """
         if hasattr(self, 'df') and self.df is not None and self.num_cols:
             print ("Visualising outliers ...\n")
@@ -303,7 +319,10 @@ class EDA:
         
     def save_df(self, filename = 'processed_data.csv'):
             """
-            Save processed DataFrame
+            Saves the processed DataFrame to the specified directory.
+
+            Args:
+                filename (str, optional): The name of the output file. Defaults to 'processed_data.csv'.
             """
 
             if not hasattr(self, 'df_out') or self.df_out is None:
