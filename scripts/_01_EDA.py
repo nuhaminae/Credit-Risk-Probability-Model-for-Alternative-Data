@@ -37,6 +37,8 @@ class EDA:
                 if 'TransactionStartTime' in self.df_raw.columns:
                     self.df_raw['TransactionStartTime'] = pd.to_datetime(self.df_raw['TransactionStartTime'], 
                                                                         errors='coerce')
+                if 'CountryCode' in self.df_raw.columns:
+                    self.df_raw['CountryCode'] = self.df_raw['CountryCode'].astype(str)
 
                 print(f"DataFrame loaded successfully from {rel_df_path}")
                 print("\nDataFrame head:")
@@ -67,13 +69,14 @@ class EDA:
     def classify_columns(self):
         """
         Classifies columns into numerical and categorical after dataframe is loaded/cleaned.
+        Used for visualisation
         """
         if self.df is not None:
             # Identify categorical elements with dtype number
-            numcols_are_catcols = ['CountryCode', 'PricingStrategy', 'FraudResult']
+            numcols_are_catcols = ['PricingStrategy', 'FraudResult']
             # Numerical columns excluding 'CountryCode' and 'PricingStrategy' if present
-            num_candidates = self.df.select_dtypes(include='number').columns
-            self.num_cols = [col for col in num_candidates if col not in numcols_are_catcols]
+            self.num_candidates = self.df.select_dtypes(include='number').columns
+            self.num_cols = [col for col in self.num_candidates if col not in numcols_are_catcols]
             
             # Categorical columns excluding near-unique IDs
             threshold = 0.035 
@@ -129,11 +132,10 @@ class EDA:
     def summary_statistics(self):
         """
         Understand the central tendency, dispersion, and shape of the dataset’s distribution.
-        Exclude the 'CountryCode' and 'PricingStrategy' columns from numerical summaries.
         """
-        if hasattr(self, 'df') and self.df is not None and self.num_cols:
-                print("Summary statistics for numerical features (excluding 'CountryCode' and 'PricingStrategy'):")
-                display(self.df[self.num_cols].describe())
+        if hasattr(self, 'df') and self.df is not None:
+                print("Summary statistics for numerical features :")
+                display(self.df[self.num_candidates].describe())
         else:
             print("No numerical features available for summary.")
 
@@ -160,7 +162,7 @@ class EDA:
             except Exception as e:
                 print(f'\nError saving plot: {e}')
     
-    def remove_outliers_iqr_zscore(self, column):
+    def remove_outliers_iqr_zscore(self, column, threshold = 2):
         """
         Removes outliers from a specified column using a combination of the IQR and Z-score methods.
 
@@ -196,8 +198,10 @@ class EDA:
         Saves the plots to the specified plot directory.
         """
         if hasattr(self, 'df') and self.df is not None and self.num_cols:
+        #if hasattr(self, 'df') and self.df is not None:
             print ("Visualising distribution of numerical features ...\n")
             for col in self.num_cols:
+            #for col in self.num_candidates:
                 plt.figure(figsize = (8, 4))
                 sns.histplot(data = self.df, x = col, kde= True, 
                                 bins=20, color = 'Red', edgecolor='black')
@@ -255,9 +259,9 @@ class EDA:
         Visualise the correlation matrix of numerical features using a heatmap.
         Saves the plot to the specified plot directory.
         """
-        if hasattr(self, 'df') and self.df is not None and self.num_cols:
+        if hasattr(self, 'df') and self.df is not None:
             print ("Visualising correlations ...\n")
-            corr = self.df[self.num_cols].corr()
+            corr = self.df[self.num_candidates].corr()
             plt.figure(figsize=(7, 3))
             sns.heatmap(corr, annot=True, fmt='.2f')
             plt.title("Correlation Matrix of Numerical Features")
@@ -284,7 +288,7 @@ class EDA:
             print ("Visualising outliers ...\n")
             for col in self.num_cols:
                 plt.figure(figsize=(8, 4))
-                sns.boxplot(data=self.df, x=col)
+                sns.boxplot(data=self.df, x=col, orientation='horizontal')
                 plt.title(f"Outlier Detection for {col}")
                 plt.tight_layout()
                 
@@ -353,8 +357,5 @@ class EDA:
             print('\nDataFrame Shape:')
             display(self.df_out.shape)
             
-            print("\nDataFrame summary:")
-            self.df_out.info()
-            
             print('\nDataFrame Description:')
-            display(self.df_out[self.num_cols].describe())
+            display(self.df_out[self.num_candidates].describe())
