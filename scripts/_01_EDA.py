@@ -161,37 +161,42 @@ class EDA:
                 print(f'\nPlot saved to {relative_plot_path}')
             except Exception as e:
                 print(f'\nError saving plot: {e}')
-    
-    def remove_outliers_iqr_zscore(self, column, threshold = 2):
+
+    def impute_outliers_iqr_zscore(self, column, threshold=2):
         """
-        Removes outliers from a specified column using a combination of the IQR and Z-score methods.
+        Imputes outliers in the specified column using a combination of IQR and Z-score methods.
+        Detected outliers are replaced with the column median.
 
         Args:
-            column (str): The name of the column to remove outliers from.
+            column (str): The name of the column to impute outliers in.
+            threshold (float, optional): Z-score threshold to identify outliers. Default is 2.
 
         Returns:
-            pandas.DataFrame: A new DataFrame with outliers removed from the specified column.  
+            pandas.DataFrame: A new DataFrame with outliers imputed.
         """
-        #IQR method
-        Q1 = self.df[column].quantile(0.25)
-        Q3 = self.df[column].quantile(0.75)
+        df_copy = self.df.copy()
+        
+        # IQR bounds
+        Q1 = df_copy[column].quantile(0.25)
+        Q3 = df_copy[column].quantile(0.75)
         IQR = Q3 - Q1
-        lower_bound_iqr = Q1 - 1.5 * IQR
-        upper_bound_iqr = Q3 + 1.5 * IQR
-        
-        #Z-score method
-        data = self.df[column]
-        z_scores = np.abs((data - data.mean()) / data.std())
-        threshold = 2 #95% of data
-        
-        #Combined IQR and Z-score conditions
-        self.df_out = self.df[
-            (self.df[column] >= lower_bound_iqr) & 
-            (self.df[column] <= upper_bound_iqr) & 
-            (z_scores <= threshold)]
+        lower_iqr = Q1 - 1.5 * IQR
+        upper_iqr = Q3 + 1.5 * IQR
 
-        return self.df_out
-    
+        # Z-score bounds
+        z_scores = (df_copy[column] - df_copy[column].mean()) / df_copy[column].std()
+        outlier_condition = (
+            (df_copy[column] < lower_iqr) |
+            (df_copy[column] > upper_iqr) |
+            (z_scores.abs() > threshold)
+        )
+
+        # Impute with median
+        median_value = df_copy[column].median()
+        df_copy.loc[outlier_condition, column] = median_value
+
+        return df_copy
+
     def visualise_distribution (self):
         """
         Visualise the distribution of numerical features using histograms with KDE.
@@ -280,8 +285,8 @@ class EDA:
 
     def detect_outliers(self):
         """
-        Visualise outliers in numerical features using boxplots before and after outlier removal.
-        Removes outliers using the `remove_outliers_iqr_zscore` method.
+        Visualise outliers in numerical features using boxplots before.
+        Impute outliers using the `impute_outliers_iqr_zscore` method.
         Saves the plots to the specified plot directory.
         """
         if hasattr(self, 'df') and self.df is not None and self.num_cols:
@@ -301,7 +306,7 @@ class EDA:
 
             print("\nVisualising after handling outlier ...")
             for col in self.num_cols:
-                self.df_out = self.remove_outliers_iqr_zscore(col)
+                self.df_out = self.impute_outliers_iqr_zscore(col)
 
                 plt.figure(figsize=(8, 4))
                 sns.histplot(data=self.df_out, x=col, kde=True, 
@@ -350,12 +355,6 @@ class EDA:
             print('\nDataFrame Head:')
             out_head=self.df_out.head()
             display (out_head)
-            
-            print('\nDataFrame Info:')
-            self.df_out.info()
-            
-            print('\nDataFrame Shape:')
-            display(self.df_out.shape)
             
             print('\nDataFrame Description:')
             display(self.df_out[self.num_candidates].describe())
