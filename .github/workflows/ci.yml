@@ -12,11 +12,11 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install depndencies
+      - name: Install & test
+        shell: cmd
         run: |
           python -m venv .credvenv
-          .credvenv\Scripts\activate
-          pip install -r requirements.txt 
-
-      - name: Run tests
-        run: python --version
+          call .credvenv\Scripts\activate.bat
+          pip install -r requirements.txt
+          python --version
+          python -m pytest --maxfail=1 --disable-warnings --tb=short
