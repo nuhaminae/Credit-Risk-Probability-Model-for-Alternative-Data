@@ -19,4 +19,4 @@ jobs:
           call .credvenv\Scripts\activate.bat
           pip install -r requirements.txt
           python --version
-          python -m pytest --maxfail=1 --disable-warnings --tb=short
+          python -m pytest tests --maxfail=1 --disable-warnings --tb=short
