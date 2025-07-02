@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import pytest
 import os, sys
+import tempfile
 
 # Add project path
 sys.path.append(os.path.abspath(os.path.join('..')))
@@ -33,8 +34,8 @@ def dummy_data():
         'AccountId': ['A1'] * 200,
         'SubscriptionId': ['S1'] * 200,
     })
-
-    file_path = 'tests/data/temp.csv'
+    
+    file_path = os.path.join(os.path.dirname(__file__), 'data', 'temp.csv')
     df.to_csv(file_path, index=False)
     return file_path
     
@@ -75,15 +76,16 @@ def test_train_and_predict(dummy_data):
     assert preds.shape[1] == 2
     assert 0 <= preds[0][1] <= 1
 
-def test_model_save_load(tmp_path, dummy_data):
-    pipeline = FraudDetectionPipeline(dummy_data, mdl_dir=tmp_path)
-    pipeline.load_and_split_data()
-    pipeline.compute_monotonic_breaks()
-    pipeline.compute_categorical_breaks()
-    pipeline.apply_woe_transformation()
-    pipeline.merge_and_clean()
-    pipeline.filter_variables()
-    pipeline.train_model()
-    pipeline.save_model()
-    pipeline.load_model()
-    assert pipeline.lr is not None
+def test_model_save_load(dummy_data):
+    with tempfile.TemporaryDirectory(dir=os.path.dirname(dummy_data)) as tmp_dir:
+        pipeline = FraudDetectionPipeline(dummy_data, mdl_dir=tmp_dir)
+        pipeline.load_and_split_data()
+        pipeline.compute_monotonic_breaks()
+        pipeline.compute_categorical_breaks()
+        pipeline.apply_woe_transformation()
+        pipeline.merge_and_clean()
+        pipeline.filter_variables()
+        pipeline.train_model()
+        pipeline.save_model()
+        pipeline.load_model()
+        assert pipeline.lr is not None
