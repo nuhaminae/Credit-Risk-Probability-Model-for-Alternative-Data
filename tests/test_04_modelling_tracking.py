@@ -52,9 +52,10 @@ def test_load_data(trainer):
     assert "vd" not in X_train.columns
 
 def test_evaluate_model(trainer):
-    patch_load_data(trainer)
+    patch_load_data(trainer) 
     X_train, X_test, y_train, y_test = trainer.load_data()
-    model = trainer.get_best_model() or trainer.train_with_tracking() or trainer.model
+    trainer.train_with_tracking()  # Uses patched version now
+    model = trainer.get_best_model() or trainer.model
     trainer.model = model
     metrics = trainer.evaluate_model(model, X_test, y_test)
     for k in ["accuracy", "precision", "recall", "f1", "roc_auc"]:
