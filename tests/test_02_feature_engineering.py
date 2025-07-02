@@ -1,4 +1,3 @@
-# tests/test_fraud_pipeline.py
 import pandas as pd
 import numpy as np
 import pytest
@@ -9,7 +8,6 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 
 # Import your FraudDetectionPipeline class
 from scripts._02_Feature_Engineering import FraudDetectionPipeline
-
 
 
 @pytest.fixture
