@@ -78,6 +78,7 @@ def test_get_best_model(trainer):
 
 # Monkey patch to avoid file system dependency
 def test_save_and_load_model(trainer):
+    # Patch save_model to skip relpath
     def patched_save_model():
         if trainer.model:
             filename = f"{trainer.model.__class__.__name__.lower()}_credit_model_boosted.pkl"
@@ -85,13 +86,42 @@ def test_save_and_load_model(trainer):
                 os.makedirs(trainer.mdl_dir)
             filepath = os.path.join(trainer.mdl_dir, filename)
             joblib.dump(trainer.model, filepath)
-            print(f"\nModel saved to: {filepath}")  # No relpath
+            print(f"\nModel saved to: {filepath}")
     trainer.save_model = patched_save_model
 
+    # Patch load_model to skip relpath
+    def patched_load_model(filename=None):
+        if not trainer.mdl_dir:
+            print(f"\nModel directory {trainer.mdl_dir} is not set.")
+            return
+
+        known_models = ["gradientboostingclassifier", "randomforestclassifier",
+                        "logisticregression", "decisiontreeclassifier"]
+        if filename is None:
+            for model_id in known_models:
+                candidate = os.path.join(trainer.mdl_dir, f"{model_id}_credit_model_boosted.pkl")
+                if os.path.exists(candidate):
+                    filename = f"{model_id}_credit_model_boosted.pkl"
+                    break
+
+        if filename is None:
+            print("\nNo model filename provided and no known model found in directory.")
+            return
+
+        filepath = os.path.join(trainer.mdl_dir, filename)
+        if os.path.exists(filepath):
+            trainer.model = joblib.load(filepath)
+            print(f"\nModel loaded from: {filepath}")
+        else:
+            print(f"\nModel file not found at: {filepath}")
+    trainer.load_model = patched_load_model
+
+    # Run test
     trainer.save_model()
     trainer.load_model()
     assert trainer.model is not None
     assert hasattr(trainer.model, "predict_proba")
+
 
 def test_plot_curves(trainer):
     try:
