@@ -197,6 +197,12 @@ class CreditRiskTrainer:
             print(f"\nBest Parameters Found: {self.grid_search.best_params_}")
             metrics = self.evaluate_model(self.model, X_test, y_test)
 
+            # Save feature list for API alignment
+            feature_list_path = os.path.join(self.mdl_dir, "features_list.pkl")
+            feature_list_relative = os.path.relpath(feature_list_path, os.getcwd())
+            joblib.dump(X_train.columns.tolist(), feature_list_path)
+            print(f"\nFeature list saved to: {feature_list_relative}")
+
             mlflow.log_params(self.grid_search.best_params_)
             mlflow.log_metrics(metrics)
             
@@ -208,7 +214,7 @@ class CreditRiskTrainer:
                 name = "model",
                 input_example = X_train.head(1),
                 signature = signature)
-
+            
             print(f"\nTraining completed for {model_name} and logged to MLflow.")
 
     def get_best_model(self):
