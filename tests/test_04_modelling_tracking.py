@@ -70,9 +70,13 @@ def test_compare_models(trainer):
     assert hasattr(trainer, "best_model_name")
 
 def test_train_with_tracking(trainer):
-    trainer.train_with_tracking()
-    assert trainer.model is not None
-    assert hasattr(trainer.model, "predict_proba")
+    with patch("scripts._04_Modelling_Tracking.os.path.relpath",
+            side_effect=lambda path, start=None: os.path.basename(path)):
+        patch_load_data(trainer)
+        trainer.train_with_tracking()
+        assert trainer.model is not None
+        assert hasattr(trainer.model, "predict_proba")
+
 
 def test_get_best_model(trainer):
     model = trainer.get_best_model()
