@@ -9,9 +9,9 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 # Import your FraudDetectionPipeline class
 from scripts._02_Feature_Engineering import FraudDetectionPipeline
 
-
 @pytest.fixture
 def dummy_data():
+    os.makedirs('tests/data', exist_ok=True)  #Ensures directory exists
     df = pd.DataFrame({
         'CustomerId': ['C1'] * 50 + ['C2'] * 50,
         'FraudResult': [0] * 90 + [1] * 10,
@@ -31,6 +31,7 @@ def dummy_data():
         'SubscriptionId': ['S1'] * 100,
         'CustomerId': ['C1'] * 50 + ['C2'] * 50
     })
+    
     file_path = 'tests/data/temp.csv'
     df.to_csv(file_path, index=False)
     return file_path
