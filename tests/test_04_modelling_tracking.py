@@ -4,6 +4,8 @@ import numpy as np
 import os, sys
 import matplotlib
 import joblib
+from unittest.mock import patch
+
 from sklearn.model_selection import train_test_split
 
 matplotlib.use("Agg")  # Prevents GUI backend during CI
@@ -52,15 +54,16 @@ def test_load_data(trainer):
     assert "vd" not in X_train.columns
 
 def test_evaluate_model(trainer):
-    patch_load_data(trainer) 
-    X_train, X_test, y_train, y_test = trainer.load_data()
-    trainer.train_with_tracking()  # Uses patched version now
-    model = trainer.get_best_model() or trainer.model
-    trainer.model = model
-    metrics = trainer.evaluate_model(model, X_test, y_test)
-    for k in ["accuracy", "precision", "recall", "f1", "roc_auc"]:
-        assert k in metrics
-        assert 0 <= metrics[k] <= 1
+    with patch("scripts._04_Modelling_Tracking.os.path.relpath", side_effect=lambda path, start=None: os.path.basename(path)):
+        patch_load_data(trainer)  
+        X_train, X_test, y_train, y_test = trainer.load_data()
+        trainer.train_with_tracking()
+        model = trainer.get_best_model() or trainer.model
+        trainer.model = model
+        metrics = trainer.evaluate_model(model, X_test, y_test)
+        for k in ["accuracy", "precision", "recall", "f1", "roc_auc"]:
+            assert k in metrics
+            assert 0 <= metrics[k] <= 1
 
 def test_compare_models(trainer):
     trainer.compare_models()
@@ -122,7 +125,6 @@ def test_save_and_load_model(trainer):
     trainer.load_model()
     assert trainer.model is not None
     assert hasattr(trainer.model, "predict_proba")
-
 
 def test_plot_curves(trainer):
     try:
