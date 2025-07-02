@@ -42,7 +42,7 @@ def test_load_data(trainer):
 # Re-defined with patching to avoid cross-drive issues
 def test_evaluate_model(trainer):
     with patch("scripts._04_Modelling_Tracking.os.path.relpath", 
-            side_effect=lambda path, start=None: os.path.abspath(path)):
+            lambda path, start=None: os.path.basename(path)):
         X_train, X_test, y_train, y_test = trainer.load_data()
         model = trainer.get_best_model() or trainer.train_with_tracking() or trainer.model
         trainer.model = model  # Ensure model is set
