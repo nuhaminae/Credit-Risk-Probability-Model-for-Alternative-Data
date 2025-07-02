@@ -17,13 +17,15 @@ import seaborn as sns
 import importlib.util
 import glob
 import os
+import joblib
 
 class FraudDetectionPipeline:
     """
     A pipeline class for fraud detection that includes data loading, splitting,
     WOE transformation, variable filtering, model training, and evaluation.
     """
-    def __init__(self, df_path, target = 'FraudResult', df_dir = None, plot_path = None):
+    def __init__(self, df_path, target = 'FraudResult', 
+                df_dir = None, plot_path = None, mdl_dir = None):
         """
         Initialises the FraudDetectionPipeline with data path and target variable.
 
@@ -32,11 +34,13 @@ class FraudDetectionPipeline:
             target (str, optional): The name of the target variable. Defaults to 'FraudResult'.
             df_dir (str, optional): The directory to save processed DataFrames. Defaults to None.
             plot_path (str, optional): The directory to save plots. Defaults to None.
+            mdl_dir (str, optional): The directory to save trained models. Defaults to None.
         """
         self.df_path = df_path
         self.target = target
         self.df_dir = df_dir
         self.plot_path = plot_path
+        self.mdl_dir = mdl_dir
         self.categorical_vars = ['ProviderId', 'ProductId', 
                                 'ProductCategory', 'ChannelId', 'PricingStrategy']
 
@@ -317,3 +321,43 @@ class FraudDetectionPipeline:
         
         print('\nDataFrame Description:')
         display(self.df.describe())
+
+    def save_model(self, filename="fraud_model.pkl"):
+        """
+        Saves the trained logistic regression model to a file.
+
+        Args:
+            filename (str): Model file name to save the model as. Defaults to 'fraud_model.pkl'.
+        """
+        if self.lr:
+            # Create model directory if it doesn't exist
+            if not os.path.exists(self.mdl_dir):
+                os.makedirs(self.mdl_dir)
+            filepath = os.path.join(self.mdl_dir, filename)
+            joblib.dump(self.lr, filepath)
+            
+            # Calculate the relative path
+            relative_path = os.path.relpath(filepath, os.getcwd())
+            print(f"\nFraud detection model saved to: {relative_path}")
+        else:
+            print("\nNo model trained yet.")
+
+    def load_model(self, filename = "fraud_model.pkl"):
+        """
+        Loads a pre-trained logistic regression model from the specified model directory.
+
+        Args:
+            filename (str): Model filename to load. Defaults to 'fraud_model.pkl'.
+        """
+        if not self.mdl_dir:
+            print(f"\nModel directory {self.mdl_dir} is not set.")
+            return
+
+        filepath = os.path.join(self.mdl_dir, filename)
+
+        if os.path.exists(filepath):
+            self.lr = joblib.load(filepath)
+            relative_path = os.path.relpath(filepath, os.getcwd())
+            print(f"\nModel loaded from: {relative_path}")
+        else:
+            print(f"\nModel file not found at: {relative_path}")
