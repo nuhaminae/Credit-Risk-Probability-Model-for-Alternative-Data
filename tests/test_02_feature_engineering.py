@@ -11,8 +11,8 @@ from scripts._02_Feature_Engineering import FraudDetectionPipeline
 
 @pytest.fixture
 def dummy_data():
-    os.makedirs('tests/data', exist_ok=True)
-
+    
+    os.makedirs(os.path.join(os.path.dirname(__file__), 'data'), exist_ok=True)
     np.random.seed(42)  # for reproducibility
 
     df = pd.DataFrame({
