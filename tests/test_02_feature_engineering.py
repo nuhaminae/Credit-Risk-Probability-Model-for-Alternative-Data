@@ -11,31 +11,33 @@ from scripts._02_Feature_Engineering import FraudDetectionPipeline
 
 @pytest.fixture
 def dummy_data():
-    os.makedirs('tests/data', exist_ok=True)  #Ensures directory exists
+    os.makedirs('tests/data', exist_ok=True)
+
+    np.random.seed(42)  # for reproducibility
+
     df = pd.DataFrame({
-        'CustomerId': ['C1'] * 50 + ['C2'] * 50,
-        'FraudResult': [0] * 90 + [1] * 10,
-        'Amount': np.random.uniform(10, 500, 100),
-        'Value': np.random.uniform(10, 500, 100),
-        'TransactionStartTime': pd.date_range('2024-01-01', periods=100, freq='H'),
-        'ProviderId': ['P1'] * 100,
-        'ProductId': ['ProdA'] * 100,
-        'ProductCategory': ['Cat1'] * 100,
-        'ChannelId': ['Web'] * 100,
-        'PricingStrategy': ['Strategy1'] * 100,
-        'CurrencyCode': ['USD'] * 100,
-        'CountryCode': ['ET'] * 100,
-        'TransactionId': list(range(100)),
-        'BatchId': list(range(100)),
-        'AccountId': ['A1'] * 100,
-        'SubscriptionId': ['S1'] * 100,
-        'CustomerId': ['C1'] * 50 + ['C2'] * 50
+        'CustomerId': np.random.choice(['C1', 'C2', 'C3', 'C4'], size=200),
+        'FraudResult': np.random.choice([0, 1], size=200, p=[0.6, 0.4]),
+        'Amount': np.random.normal(loc=300, scale=100, size=200).clip(5),  # varied, no negatives
+        'Value': np.random.normal(loc=250, scale=80, size=200).clip(5),
+        'TransactionStartTime': pd.date_range('2024-01-01', periods=200, freq='H'),
+        'ProviderId': np.random.choice(['P1', 'P2', 'P3'], size=200),
+        'ProductId': np.random.choice(['ProdA', 'ProdB', 'ProdC'], size=200),
+        'ProductCategory': np.random.choice(['Cat1', 'Cat2'], size=200),
+        'ChannelId': np.random.choice(['Web', 'Mobile', 'Checkout'], size=200),
+        'PricingStrategy': np.random.choice(['Strategy1', 'Strategy2'], size=200),
+        'CurrencyCode': ['USD'] * 200,
+        'CountryCode': ['ET'] * 200,
+        'TransactionId': np.arange(200),
+        'BatchId': np.arange(200),
+        'AccountId': ['A1'] * 200,
+        'SubscriptionId': ['S1'] * 200,
     })
-    
+
     file_path = 'tests/data/temp.csv'
     df.to_csv(file_path, index=False)
     return file_path
-
+    
 def test_custom_split(dummy_data):
     pipeline = FraudDetectionPipeline(dummy_data)
     df = pd.read_csv(dummy_data)
