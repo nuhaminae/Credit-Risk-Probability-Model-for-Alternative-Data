@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os, sys
 import matplotlib
+from unittest.mock import patch
 matplotlib.use("Agg")  # Prevents GUI backend during CI
 
 # Add project path
@@ -31,10 +32,12 @@ def model_dir(tmp_path_factory):
 def trainer(dummy_model_data, model_dir):
     return CreditRiskTrainer(data_path=dummy_model_data, mdl_dir=str(model_dir))
 
+# Patched with unittest to prevent cross-drive failure
 def test_load_data(trainer):
-    X_train, X_test, y_train, y_test = trainer.load_data()
-    assert X_train.shape[0] + X_test.shape[0] == 100
-    assert "vd" not in X_train.columns
+    with patch("scripts._04_Modelling_Tracking.os.path.relpath", side_effect=os.path.abspath):
+        X_train, X_test, y_train, y_test = trainer.load_data()
+        assert X_train.shape[0] + X_test.shape[0] == 100
+        assert "vd" not in X_train.columns
 
 def test_evaluate_model(trainer):
     X_train, X_test, y_train, y_test = trainer.load_data()
