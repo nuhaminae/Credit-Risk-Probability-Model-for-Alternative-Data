@@ -5,18 +5,28 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v3
         with:
           python-version: '3.x'
 
-      - name: Install & test
+      - name: Install dependencies
         shell: cmd
         run: |
           python -m venv .credvenv
           call .credvenv\Scripts\activate.bat
           pip install -r requirements.txt
+
+      - name: Patch monotonic_binning for NumPy 2.x
+        shell: cmd
+        run: |
+          powershell -Command "(Get-Content .credvenv\Lib\site-packages\monotonic_binning\monotonic_woe_binning.py) -replace 'np\.Inf', 'np.inf' | Set-Content .credvenv\Lib\site-packages\monotonic_binning\monotonic_woe_binning.py"
+
+      - name: Run tests
+        shell: cmd
+        run: |
+          call .credvenv\Scripts\activate.bat
           python --version
           python -m pytest tests --maxfail=1 --disable-warnings --tb=short
