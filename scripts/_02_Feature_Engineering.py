@@ -166,6 +166,23 @@ class FraudDetectionPipeline:
         self.test_final = self.test_final.drop(columns=self.categorical_vars)
         print("\nFinal dataset merged and cleaned.")   
 
+    def save_woe_transformed_data(self, filename="woe_encoded_data.csv"):
+        """
+        Saves the concatenated WoE-transformed and filtered train + test set.
+
+        Args:
+            filename (str): Output CSV file name.
+        """
+        if not os.path.exists(self.df_dir):
+            os.makedirs(self.df_dir)
+
+        df_combined = pd.concat([self.train_final, self.test_final], ignore_index=True)
+        file_path = os.path.join(self.df_dir, filename)
+        df_combined.to_csv(file_path, index=False)
+
+        relative_path = os.path.relpath(file_path, os.getcwd())
+        print(f"\nWoE-transformed dataset saved to: {relative_path}")
+
     def run_iv_analysis(self):
         """
         Performs Information Value (IV) analysis on the final training dataset.
