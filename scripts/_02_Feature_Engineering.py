@@ -338,7 +338,7 @@ class FraudDetectionPipeline:
             
             # Calculate the relative path
             relative_path = os.path.relpath(filepath, os.getcwd())
-            print(f"\nFraud detection model saved to: {relative_path}")
+            print(f"\nModel saved to: {relative_path}")
         else:
             print("\nNo model trained yet.")
 
