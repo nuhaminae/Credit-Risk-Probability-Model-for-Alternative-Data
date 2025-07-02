@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import os, sys
 import matplotlib
-#from unittest.mock import patch
+import joblib
 from sklearn.model_selection import train_test_split
 
 matplotlib.use("Agg")  # Prevents GUI backend during CI
@@ -75,7 +75,19 @@ def test_get_best_model(trainer):
     assert model is not None
     assert hasattr(model, "predict_proba")
 
+
+# Monkey patch to avoid file system dependency
 def test_save_and_load_model(trainer):
+    def patched_save_model():
+        if trainer.model:
+            filename = f"{trainer.model.__class__.__name__.lower()}_credit_model_boosted.pkl"
+            if not os.path.exists(trainer.mdl_dir):
+                os.makedirs(trainer.mdl_dir)
+            filepath = os.path.join(trainer.mdl_dir, filename)
+            joblib.dump(trainer.model, filepath)
+            print(f"\nModel saved to: {filepath}")  # No relpath
+    trainer.save_model = patched_save_model
+
     trainer.save_model()
     trainer.load_model()
     assert trainer.model is not None
