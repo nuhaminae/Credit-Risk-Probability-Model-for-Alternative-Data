@@ -7,7 +7,7 @@ import os, sys
 sys.path.append(os.path.abspath(os.path.join('..')))
 
 # Import your FraudDetectionPipeline class
-from scripts._03_Target_Engineering import RiskTargetBuilder  # adjust import if needed
+from scripts._03_Target_Engineering import RiskTargetBuilder
 
 @pytest.fixture
 def dummy_rfm_data(tmp_path):
