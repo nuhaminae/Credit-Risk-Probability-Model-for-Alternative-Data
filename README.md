@@ -2,23 +2,46 @@
 
 ## Overview
 
-This repository contains a project for developing a credit scoring model by transforming behavioural data into a predictive risk signal. The aim is to leverage alternative data sources to improve the accuracy of credit risk assessment, particularly in scenarios where traditional credit data may be limited or unavailable.
+The **Credit Risk Probability Model for Alternative Data** is an advanced data science project designed to assess credit risk using non-traditional (alternative) data sources. This repository demonstrates the end-to-end process of developing, evaluating, and deploying a machine learning model to predict the probability of credit default, with a particular emphasis on the utilisation of alternative data attributes. The project is crafted for data scientists, risk analysts, and financial technologists interested in modern credit risk assessment methodologies.
+
+## Key Features
+- **Behavioural Data Integration:** Utilises alternative, non-traditional data sources to capture a broader spectrum of financial behaviours.
+- **Exploratory Data Analysis (EDA):** Visualisations and statistical summaries to understand data distributions and relationships.
+- **Comprehensive Data Preprocessing:** Handles missing values, outliers, feature engineering, and encoding of categorical variables.
+- **Feature Engineering:** Methods for constructing predictive features from behavioural data, including Weight of Evidence (WoE) encoding.
+- **Predictive Model Development and Interpretability:** Focuses on explainable models (e.g., Logistic Regression, Random Forest, and Gradient Boosting with WoE encoding) to meet regulatory requirements (Basel II).
+- **Model Evaluation:** Evaluates models using metrics like ROC-AUC, Precision-Recall, F1-score, and calibration plots.
+- **Deployment-Ready:** Includes scripts for model serialisation and API deployment (via FastAPI).
+- **Data Versioning:** Uses DVC for reproducible data pipelines.
+- **Experiment Tracking:** Supports MLflow or similar tools for model tracking.
+- **Automated Testing:** Includes test scripts and CI/CD setup.
+- **Jupyter Notebook Implementation:** The codebase is primarily in Jupyter Notebook format, facilitating transparency, reproducibility, and ease of experimentation.
+- **Customisable Workflows:** Designed for adaptability, allowing users to tailor feature engineering and model parameters to their specific data and requirements.
+
+---
 
 ## Table of Contents
 
-- [Overview](#overview)
+- [Project Background](#project-background)
 - [Credit Scoring and Business Understanding](#credit-scoring-and-business-understanding)
+- [Data Sources](#data-sources)
 - [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Data Description](#data-description)
-- [Modelling Approach](#modelling-approach)
+- [Model Training and Evaluation](#model-training-and-evaluation)
+- [Results and Interpretation](#results-and-interpretation)
 - [Testing](#testing)
 - [Contribution](#contribution)
-- [Completion](#completion)
+- [Project Status](#project-status)
+- [Acknowledgements](#acknowledgements)
 
+## Project Background
 
-## Credit Scoring Business Understanding
+Traditional credit risk models often rely on limited financial data such as credit bureau reports, income statements, and payment histories. However, many potential borrowers, especially in emerging markets, lack extensive credit histories. To address this gap, alternative data such as mobile phone usage, utility payments, social media behaviour, and other digital footprints can be leveraged to enhance credit risk assessment.
+
+This project explores the use of shopping behaviour, transaction patterns, and other behavioural indicators as alternative data sources. It leverages these insights to build a robust probability-of-default model, promoting financial inclusion and improving risk management for lenders.
+
+## Credit Scoring and Business Understanding
 
 ### 1. Why Model Interpretability Matters under Basel II
 The Basel II Accord requires financial institutions to rigorously measure, monitor, and manage credit risk, especially for capital adequacy calculations. This regulatory framework places a premium on transparency, interpretability, and auditability of risk models. As a result, credit scoring models must be not only accurate but also interpretable and well-documented. This ensures regulators, auditors, and internal stakeholders can clearly understand how scores are generated, how input variables affect outcomes, and how risk is being quantified, thus maintaining compliance and facilitating trust in the model’s outputs.
@@ -29,20 +52,57 @@ In the absence of a direct "default" label in the data, one must define a proxy 
 ### 3. Key Trade-offs: Simplicity vs. Complexity in Model Choice
 Simple, interpretable models (e.g., Logistic Regression with Weight of Evidence encoding) offer clear explanations for decisions, easier validation, and regulatory acceptance—crucial for compliance and governance. However, they may sacrifice some predictive power compared to more complex approaches. High-performance models (e.g., Gradient Boosting Machines) can yield better accuracy but are harder to interpret and validate, increasing the risk of regulatory challenges and implementation hurdles. In regulated environments, the trade-off often favors interpretability and transparency over marginal gains in predictive accuracy, unless the complexity can be justified and thoroughly documented.
 
+
+## Data Sources
+
+- **Alternative Data:** Anonymised shopping behaviour signals, customer identity and behavioural segmentation, and context and localisation data. 
+- **Synthetic Data:** For demonstration and privacy, synthetic datasets mimicking real-world alternative data are provided in the `tests/data/` directory.
+
+> **Note:** Ensure compliance with all data privacy and regulatory requirements when working with real customer data.
+
 ## Project Structure
 
 ```
-.
-├── .github/workflows/         # CI/CD pipeline configuration
-├── .dvc/                      # DVC configuration files
-├── data/
-│   ├── processed/             # Processed data (outputs)
-│   └── raw/                   # Raw data (inputs)
-├── notebooks/                 # Jupyter notebooks for EDA and modelling
-├── requirements.txt           # Python dependencies
-├── README.md                  # This documentation file
-├── .gitignore                 # Files/folders to be ignored by Git
-├── .dvcignore                 # Files/folders to be ignored by DVC
+Credit-Risk-Probability-Model-for-Alternative-Data/
+│
+├── .dvc/                              # DVC configuration files
+├── .github/                           # GitHub workflows and CI/CD
+├── data/                              # Data directory
+|   ├── raw/                           # Raw data files
+|   └── processed/                     # Processed data files
+├── models/                            # Directory for trained models
+|   ├── best_model.pkl                 # Example trained model file
+|   ...                                
+├── notebooks/                         # Jupyter notebooks
+|   ├── 01_EDA.ipynb                   # Exploratory Data Analysis
+|   ├── 02_Feature_Engineering.ipynb   # Feature engineering and WoE
+|   ...                                
+├── plots/                             # Plots and visualisations
+├── scripts/                           # Data processing and modelling scripts
+│   ├── api/                           # API scripts for deployment
+│   │   ├── app.py                     # API application
+│   │   └── python_api.py              # API script
+│   ├── __init__.py                    # Package initialisation
+│   ├── _01_EDA.py                     # EDA script
+│   ├── _02_Feature_Engineering.py     # Feature engineering script
+   ...                                 
+├── test notebooks/                    # Test notebooks
+│   ├── 01_Test_EDA.ipynb              # Test for EDA notebook
+├── tests/                             # Unit and integration tests
+│   ├── data/                          # Test data files
+|   |   └──temp.csv
+│   ├── test_02_feature_engineering.py 
+│   ├── test_03_model_training.py      
+│   ...                                
+├── .dockerignore                      # Docker ignore file
+├── .gitignore                         # Git ignore file
+├── Dockerfile                         # Docker build file
+├── README.md                          # Project documentation
+├── docker-compose.yml                 # Docker Compose configuration
+├── pytest.ini                         # pytest configuration
+├── requirements-docker.txt            # Docker-specific dependencies
+└── requirements.txt                   # Python dependencies
+
 ```
 
 ## Installation
@@ -83,54 +143,75 @@ Simple, interpretable models (e.g., Logistic Regression with Weight of Evidence 
 
 ## Usage
 
-All data science and modelling work is performed in the `notebooks` directory using Jupyter notebooks. To start JupyterLab:
+### Data Preparation
 
+- Place your data files (CSV or similar) in the `data/` directory.
+- Review and update file paths in the notebooks or scripts as required.
+
+### Running Notebooks
+
+- Launch Jupyter Notebook:
+
+  ```bash
+  jupyter notebook
+  ```
+
+- Open and execute the notebooks in the `notebooks/` directory in sequence.
+
+### Model Training via Scripts
+
+- Run the main training and evaluate the trained model:
+  ```bash
+  python scripts/_04_Modelling_Tracking.py --data test/data/train.csv
+  ```
+
+### Deployment
+Deployment scripts are provided for exposing the model as a RESTful API. The API accepts borrower data and returns a probability of default, supporting integration with external systems.
+
+#### Run Locally (Without Docker)
+- To launch the FastAPI server directly—ideal for development or quick testing:
+  ```bash
+   python scripts/app.py
+  ```
+- Once running, the API will be available at:
+  - Swagger UI: http://localhost:8000/docs
+  - Health Check: http://localhost:8000/health
+
+#### Run with Docker 
+- To containerise and deploy the Credit Risk Scoring API:
 ```bash
-jupyter lab
+# Step 1: Build the Docker image
+docker build -t credit-risk-api .
+
+# Step 2: Run the container, exposing port 8000
+docker run -p 8000:8000 credit-risk-api
 ```
 
-Open any of the provided notebooks to explore exploratory data analysis (EDA), feature engineering, and model building.
+## Model Training and Evaluation
+The project supports experimentation with multiple algorithms and hyperparameter tuning. Results are logged and visualised for comparison. Key evaluation metrics include:
 
-### Data Processing
+- Area Under the ROC Curve (ROC-AUC)
+- Precision, Recall, F1-score
+- Confusion Matrix
+- Feature Importance Charts
 
-Raw data should be placed in the `data/raw/` directory. Processed datasets and model outputs will be saved to `data/processed/`.
+## Results and Interpretation
 
-## Data Description
+Results and analyses are documented in the `notebooks/` directory. Example outputs include:
 
-The project is designed to work with behavioural and alternative data sources.
-*Note: The actual datasets used are not included in the repository due to privacy and regulatory reasons. Sample data schemas may be provided in the notebooks.*
-
-## Modelling Approach
-
-The workflow typically follows these steps:
-
-1. **Exploratory Data Analysis (EDA):**
-   - Understanding data distributions, missing values, and initial patterns.
-
-2. **Feature Engineering:**
-   - Deriving meaningful features from raw behavioural data.
-
-3. **Model Selection:**
-   - Evaluating various machine learning algorithms (e.g., logistic regression, random forests, gradient boosting).
-
-4. **Model Training and Evaluation:**
-   - Using cross-validation and appropriate metrics (e.g., F1-score).
-
-5. **Interpretability:**
-   - Analysing feature importance and model explainability.
-
-6. **Deployment:**
-   - The model can be exported for use in production environments.
+- Comparative performance of models using feature engineering techniques.
+- Insights into which alternative features are most predictive of credit default.
+- Visualisations of model performance metrics.
 
 ## Testing
 
-Continuous integration is set up using GitHub Actions (`.github/workflows/ci.yml`). This runs basic tests such as checking Python version and installing dependencies.
+Continuous integration is set up using GitHub Actions (`.github/workflows/ci.yml`). This runs basic tests such as checking Python version, installing dependencies, and running pytests.
 
 To run tests locally, ensure your environment is activated and use:
 
 ```bash
 python --version
-# Add more test commands as appropriate for your project
+pytest tests/
 ```
 
 ## Contribution
@@ -144,5 +225,13 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 5. Open a pull request.
 
 
-## Completion
-The project is underway, please check [commit history](https://github.com/nuhaminae/Credit-Risk-Probability-Model-for-Alternative-Data/commits?author=nuhaminae).
+## Project Status
+The project is completed, please check [commit history](https://github.com/nuhaminae/Credit-Risk-Probability-Model-for-Alternative-Data/commits?author=nuhaminae).
+
+## Acknowledgements
+
+Special thanks to the open-source community and data science practitioners whose tools and insights made this project possible.
+
+---
+
+For any questions or support, please open an issue or contact the maintainer at [Nuhamin](https://github.com/nuhaminae).
