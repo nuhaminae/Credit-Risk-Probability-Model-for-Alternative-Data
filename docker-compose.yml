@@ -1,0 +1,9 @@
+services:
+  credit-risk-api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app  # Optional: maps local code into container for live updates
+    environment:
+      - PYTHONUNBUFFERED=1
